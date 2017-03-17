@@ -4,7 +4,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import static java.lang.System.*;
 
-public class Bonus {
+public class Assignment05 {
     private static BufferedReader br;
     private static BufferedWriter bw;
     private static Scanner inp;
@@ -33,7 +33,7 @@ public class Bonus {
 
         inp = new Scanner(System.in);
 
-        out.printf("\n\n" + MyUtils.ASCII_BOLD+"Bonus Part: "+MyUtils.ANSI_RESET+MyUtils.ANSI_BLUE+ "Binary Classification tool\n\n"+MyUtils.ANSI_RESET);
+        out.printf("\n\n" + MyUtils.ASCII_BOLD+"Assignment05 Part: "+MyUtils.ANSI_RESET+MyUtils.ANSI_BLUE+ "Binary Classification tool\n\n"+MyUtils.ANSI_RESET);
 
         do {
             out.printf("What is the name of the file containing your training data?\n");
@@ -56,21 +56,21 @@ public class Bonus {
         int t = -1;
         boolean flag;
         dataHolder = DataHolder.getInstance(br = new BufferedReader(new InputStreamReader(System.in)));
-        Map<Integer, String> binaryAttributes = dataHolder.getAllBinaryAttributes();
+        Map<Integer, String> attributes = dataHolder.getAllAttributes();
         do {
             out.printf("Please choose an attribute (by number):\n");
-            for (Map.Entry<Integer, String> entry : binaryAttributes.entrySet())
+            for (Map.Entry<Integer, String> entry : attributes.entrySet())
                 out.printf("%8d: %s\n", entry.getKey(), entry.getValue());
             out.printf("\nAttribute: ");
             flag = false ;
-            if (!inp.hasNextInt() || (flag = true) && (t = inp.nextInt()) <= 0 || t > binaryAttributes.size()) {
+            if (!inp.hasNextInt() || (flag = true) && (t = inp.nextInt()) <= 0 || t > attributes.size()) {
                 if ( !flag ) inp.next();
-                out.printf(MyUtils.ANSI_RED + "[error] please input a number in range 1-" + binaryAttributes.size() + MyUtils.ANSI_RESET + "\n");
+                out.printf(MyUtils.ANSI_RED + "[error] please input a number in range 1-" + attributes.size() + MyUtils.ANSI_RESET + "\n");
                 t = -1;
             }
         } while (t == -1);
-        if (dataHolder.setTargetAttribute(binaryAttributes.get(t))) {
-            out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+binaryAttributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
+        if (dataHolder.setTargetAttribute(attributes.get(t))) {
+            out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+attributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
             trainTheClassifier(percent);
             do {
                 out.printf("What is the name of the file containing your test data?\n");
@@ -84,7 +84,7 @@ public class Bonus {
             out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading input data from %s\n\n",infile.toString());
             System.setIn(new FileInputStream(new File(filename)));
             classify();
-            out.printf("The result is in the file "+MyUtils.ANSI_YELLOW_BACKGROUND+MyUtils.ANSI_BLUE+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
+            out.printf("The result is in the file "+MyUtils.ANSI_CYAN_BACKGROUND+MyUtils.ANSI_RED+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
             out.println(MyUtils.ANSI_GREEN+"*** Classification Finished ***"+ MyUtils.ANSI_RESET);
         } else {
             throw new RuntimeException("DataHolder could not set target variable");
@@ -108,26 +108,24 @@ public class Bonus {
      * uses the derived model to classify the test data
      */
     static void classify() throws Exception {
+        int same = 0, inReality, butClassifiedAs;
         br = new BufferedReader(new InputStreamReader(System.in));
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);
         nf.setMinimumFractionDigits(2);
         br.readLine(); // read the header; the relation must match that of training data
-        Map<Outcomes,Integer> cnt = new HashMap<>();
-        int []v = new int[2];
-        for ( Outcomes o: Outcomes.values() )
-            cnt.put(o,0);
         int tuples = 0;
         for ( String buff; (buff = br.readLine()) != null; ++tuples ) {
             if ( MyUtils.isEmptyLine(buff) ) continue ;
             Long t = dataHolder.mapRowToLong(buff);
-            v[0] = dataHolder.getOutcome(t);
-            v[1] = c.getPrediction(t);
-            bw.write(buff+","+v[0]+","+v[1]+"\n");
-            Outcomes o = Outcomes.which(v[0],v[1]); // TP, FN, TN, FP?
-            cnt.put(o,cnt.get(o)+1);
+            inReality = dataHolder.getOutcome(t);
+            butClassifiedAs = c.getPrediction(t);
+            bw.write(buff+","+inReality+","+butClassifiedAs+"\n");
+            same += (inReality==butClassifiedAs?1:0);
         }
-        bw.write("\nAccuracy "+nf.format((cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/tuples));
+        //bw.write("\nAccuracy "+nf.format((cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/tuples));
+        bw.write("\nAccuracy "+nf.format((same+0.0)/tuples));
         bw.flush();
     }
 }
+

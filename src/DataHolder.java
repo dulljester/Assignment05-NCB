@@ -31,7 +31,7 @@ public class DataHolder {
         return readAttribute(t,targetVar);
     }
     public int getOutcome( Long t ) {
-        return (getActualOutcome(t)>>offset[targetVar])==1?0:1;
+        return (int)(getActualOutcome(t)>>offset[targetVar]);
     }
 
     /*
@@ -154,13 +154,11 @@ public class DataHolder {
     private Long mapRowToLong( List<String> lst ) {
         long res = 0;
         assert lst.size() == getN();
-        lst = lst;
         for ( int i = 0; i < lst.size(); ++i )
             res |= ((long)(m.get(i).get(lst.get(i))) << offset[i]);
-        assert res != 0;
         return res;
     }
-    /* thr above, overloaded for convenience */
+    /* the above, overloaded for convenience */
     private Long mapRowToLong( String ... lst ) {
         long res = 0;
         assert lst.length == getN();
@@ -188,8 +186,7 @@ public class DataHolder {
                 ++width[entry.getKey()];
         }
         assert m.size() == N;
-        for ( int i = 1; i <= N; ++i )
-            offset[i] = offset[i-1]+width[i-1];
+        for ( int i = 1; i <= N; offset[i] = offset[i-1]+width[i-1], ++i ) ;
         assert offset[N] <= 62;
         for ( Map.Entry<Integer,List<String>> entry: database.entrySet() ) {
             long key = mapRowToLong(entry.getValue());
@@ -197,7 +194,6 @@ public class DataHolder {
                 cnt.put(key,cnt.get(key)+1);
             else cnt.put(key,1);
         }
-
         if ( getN() < SH ) {
             mask = new long[1 << getN()];
             for (long u = 0; u < (1 << N); ++u) {
@@ -227,7 +223,7 @@ public class DataHolder {
         int i,j,k,n = 0;
         Map<Integer,Map<String,Integer>> counts = new HashMap<>();
         /*
-         * converting original column names to lowercase: needed for bonus part training data/input data compatibility
+         * converting original column names to lowercase: needed for training data/test data compatibility
          */
         for ( ;scan.hasNext(); im.put(n,new HashMap<>()), m.put(n,new HashMap<>()), nameOfAttribute.put(n++,scan.next().toLowerCase()) ) ;
         for ( i = 0; i < n; ++i )
@@ -243,8 +239,8 @@ public class DataHolder {
                     else counts.get(j).put(t,1);
                 }
                 database.get(i).add(t);
-                if ( !m.get(j).containsKey(t) ) {
-                    k = m.get(j).size()+1;
+                if ( !t.equals("?") && !m.get(j).containsKey(t) ) {
+                    k = m.get(j).size();
                     m.get(j).put(t,k);
                     im.get(j).put(k,t);
                 }
@@ -301,6 +297,16 @@ public class DataHolder {
         return t;
     }
 
+    /* we make NBC a general, non-binary classifier */
+    public Map<Integer,String> getAllAttributes() {
+        Map<Integer,String> res = new TreeMap<>();
+        int k = 0;
+        for ( Map.Entry<Integer,Map<Integer,String>> entry: im.entrySet() )
+            if ( entry.getValue().size() >= 2 )
+                res.put(++k,getNameOfAttribute(entry.getKey()));
+        return res;
+    }
+
     public Map<Integer,String> getAllBinaryAttributes() {
         Map<Integer,String> res = new TreeMap<>();
         int k = 0;
@@ -336,6 +342,11 @@ public class DataHolder {
 
     public int getDomainCardinality(int idx) {
         return m.get(idx).size();
+    }
+
+    /* a wrapper telling how many classes are there for the target variable */
+    public int getNumOfOutcomes() {
+        return getDomainCardinality(getTargVariable());
     }
 }
 

@@ -44,7 +44,7 @@ public class Main {
         out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading from %s\n\n",infile.toString());
 
         bw = new BufferedWriter(new PrintWriter(outfile = new File("./Rules.txt")));
-        double perc = 0.99999999;
+        double perc = .66;
         System.setIn(new FileInputStream(new File(filename)));
         go(perc);
     }
@@ -53,24 +53,24 @@ public class Main {
         int t = -1;
         boolean flag;
         dataHolder = DataHolder.getInstance(br = new BufferedReader(new InputStreamReader(System.in)));
-        Map<Integer, String> binaryAttributes = dataHolder.getAllBinaryAttributes();
+        Map<Integer, String> attributes = dataHolder.getAllAttributes();
         do {
             out.printf("Please choose an attribute (by number):\n");
-            for (Map.Entry<Integer, String> entry : binaryAttributes.entrySet())
+            for (Map.Entry<Integer, String> entry : attributes.entrySet())
                 out.printf("%8d: %s\n", entry.getKey(), entry.getValue());
             out.printf("\nAttribute: ");
             flag = false ;
-            if (!inp.hasNextInt() || (flag = true) && (t = inp.nextInt()) <= 0 || t > binaryAttributes.size()) {
+            if (!inp.hasNextInt() || (flag = true) && (t = inp.nextInt()) <= 0 || t > attributes.size()) {
                 if ( !flag ) inp.next();
-                out.printf(MyUtils.ANSI_RED + "[error] please input a number in range 1-" + binaryAttributes.size() + MyUtils.ANSI_RESET + "\n");
+                out.printf(MyUtils.ANSI_RED + "[error] please input a number in range 1-" + attributes.size() + MyUtils.ANSI_RESET + "\n");
                 t = -1;
             }
         } while (t == -1);
-        if (dataHolder.setTargetAttribute(binaryAttributes.get(t))) {
-            out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+binaryAttributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
+        if ( dataHolder.setTargetAttribute(attributes.get(t)) ) {
+            out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+attributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
             trainTheClassifier(percent);
             classify(percent);
-            out.printf("The result is in the file "+MyUtils.ANSI_YELLOW_BACKGROUND+MyUtils.ANSI_BLUE+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
+            out.printf("The result is in the file "+MyUtils.ANSI_CYAN_BACKGROUND+MyUtils.ANSI_RED+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
             out.println(MyUtils.ANSI_GREEN+"*** Algorithm Finished ***"+ MyUtils.ANSI_RESET);
         } else {
             throw new RuntimeException("DataHolder could not set target variable");
@@ -80,12 +80,9 @@ public class Main {
     // trains the classifier given the "percent" -- percentage of the data
     // to train on; see comments below
     static void trainTheClassifier( final double percent ) {
-        int i,k;
-        final Set<Long> inc = new HashSet<>();
         if ( percent <= 0 || percent >= 1 )
             throw new IllegalArgumentException("percentage has to be in [0,1]");
         int n = (int)(dataHolder.numUniqTuples()*percent);
-        //int n = dataHolder.numUniqTuples();
         Long []t = dataHolder.getUniqTuples(n);
         Map<Long,Integer> cnts = new HashMap<>();
         for ( Long x: t )
@@ -96,19 +93,19 @@ public class Main {
     }
 
     // used for testing the classifier -- counting accuracy -- on the
-    // data withheld; now relevant only for the bonus part
+    // data withheld;
     static void classify( final double perc ) {
-        int n = dataHolder.numUniqTuples();
-        int [][]v = new int[2][n];
+        int n = dataHolder.numUniqTuples(), m = dataHolder.getNumOfOutcomes(), same = 0;
+        int [][]v = new int[m][m];
         Long []t = dataHolder.getUniqTuples(n);
         Map<Outcomes,Integer> cnt = new HashMap<>();
         for ( Outcomes o: Outcomes.values() )
             cnt.put(o,0);
         for ( int i = 0; i < n; ++i ) {
-            v[0][i] = dataHolder.getOutcome(t[i]);
-            v[1][i] = c.getPrediction(t[i]);
-            Outcomes o = Outcomes.which(v[0][i],v[1][i]);
-            cnt.put(o,cnt.get(o)+1);
+            int inReality = dataHolder.getOutcome(t[i]), butClassifiedAs = c.getPrediction(t[i]);
+            assert inReality >= 0 && butClassifiedAs >= 0: inReality+" "+butClassifiedAs;
+            ++v[inReality][butClassifiedAs];
+            same += (inReality==butClassifiedAs?1:0);
         }
         try {
             bw.write(c.toString()+"\n");
@@ -118,7 +115,7 @@ public class Main {
             io.printStackTrace();
             throw new RuntimeException(io);
         }
-        //out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/n);
+        out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(same+0.00)/n);
     }
 }
 

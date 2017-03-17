@@ -4,7 +4,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
 --Compile & run
 
     compile: make
-    run: java Main (or java Bonus)
+    run: java Main (or java Assignment05)
         NOTE: for simplicity, you can put the dataset inside the directory with the sources (this way you don't have to provide full path)
 
         ***** BREAKDOWN BY EVALUATION CRITERIA *****
@@ -12,7 +12,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
 --Introduction to the code structure / architecture
 
         * readdata(): DataHolder class, private void readData( BufferedReader br ) throws Exception ;
-        * getattrib(): Main/Bonus class, interaction with the user, I/O, determining the target attribute, etc.
+        * getattrib(): Main/Assignment05 class, interaction with the user, I/O, determining the target attribute, etc.
         * maketree(): DecisionTree class implementing Classifier interface, the Node inner class constructor takes care of "maketree" functionality
         * getInformationGain(): determineSplittingVarIdx() method in DecisionTree class
         * doSplit(): determineSplittingVarIdx() and Node's constructor
@@ -80,13 +80,13 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
           of the Classifier interface.
         * DecisionTree implements Classifier: essentially, its private inner class Node does all the non-trivial work
         * Main: driver; interacts with the user, I/O set-up, etc.
-        * Bonus: derives a decision tree from training data and classifies another dataset, reports accuracy and predicted and true class labels
+        * Assignment05: derives a decision tree from training data and classifies another dataset, reports accuracy and predicted and true class labels
 
     --Code readability and comments
 
         All the methods bear self-explanatory names and are supplied with asserts to check for pre/post conditions
 
-    --Brief Description about Bonus part
+    --Brief Description about Assignment05 part
         Training(data1), Test(data2) --> accuracy 0.86
         Training(data2), Test(data1) --> accuracy 0.67
         It is somewhat counterintuitive that with larger training data we achieve worse accuracy on a smaller set.
