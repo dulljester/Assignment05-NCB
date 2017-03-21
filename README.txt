@@ -4,7 +4,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
 --Compile & run
 
     compile: make
-    run: java Main (or java Assignment05)
+    run: java Bonus (or java Assignment05)
         NOTE: for simplicity, you can put the dataset inside the directory with the sources (this way you don't have to provide full path)
 
         ***** BREAKDOWN BY EVALUATION CRITERIA *****
@@ -12,7 +12,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
 --Introduction to the code structure / architecture
 
         * readdata(): DataHolder class, private void readData( BufferedReader br ) throws Exception ;
-        * getattrib(): Main/Assignment05 class, interaction with the user, I/O, determining the target attribute, etc.
+        * getattrib(): Bonus/Assignment05 class, interaction with the user, I/O, determining the target attribute, etc.
         * maketree(): DecisionTree class implementing Classifier interface, the Node inner class constructor takes care of "maketree" functionality
         * getInformationGain(): determineSplittingVarIdx() method in DecisionTree class
         * doSplit(): determineSplittingVarIdx() and Node's constructor
@@ -79,7 +79,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
           the whole system is loosely coupled to the DecisionTree class. All we do is just plug-in another implementation
           of the Classifier interface.
         * DecisionTree implements Classifier: essentially, its private inner class Node does all the non-trivial work
-        * Main: driver; interacts with the user, I/O set-up, etc.
+        * Bonus: driver; interacts with the user, I/O set-up, etc.
         * Assignment05: derives a decision tree from training data and classifies another dataset, reports accuracy and predicted and true class labels
 
     --Code readability and comments

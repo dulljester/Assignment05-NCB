@@ -1,9 +1,10 @@
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.*;
 import static java.lang.System.*;
 
-public class Main {
+public class Bonus {
     private static BufferedReader br;
     private static BufferedWriter bw;
     private static Scanner inp;
@@ -27,10 +28,14 @@ public class Main {
         }
     }
 
+    private static final double percent = 0.70;
+
     public static void main(String... args) throws Exception {
         String filename = null;
 
         inp = new Scanner(System.in);
+
+        out.printf("\n\n" + MyUtils.ASCII_BOLD+"Assignment05 Bonus Part: "+MyUtils.ANSI_RESET+MyUtils.ANSI_BLUE+ "NCB Classification tool\n\n"+MyUtils.ANSI_RESET);
 
         do {
             out.printf("What is the name of the file containing your data?\n");
@@ -43,10 +48,9 @@ public class Main {
         } while ( infile == null );
         out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading from %s\n\n",infile.toString());
 
-        bw = new BufferedWriter(new PrintWriter(outfile = new File("./Rules.txt")));
-        double perc = .66;
+        bw = new BufferedWriter(new PrintWriter(outfile = new File("./Result.txt")));
         System.setIn(new FileInputStream(new File(filename)));
-        go(perc);
+        go(percent);
     }
 
     static void go( final double percent ) throws Exception {
@@ -68,8 +72,9 @@ public class Main {
         } while (t == -1);
         if ( dataHolder.setTargetAttribute(attributes.get(t)) ) {
             out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+attributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
-            trainTheClassifier(percent);
-            classify(percent);
+            prepare(percent);
+            trainTheClassifier();
+            classify();
             out.printf("The result is in the file "+MyUtils.ANSI_CYAN_BACKGROUND+MyUtils.ANSI_RED+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
             out.println(MyUtils.ANSI_GREEN+"*** Algorithm Finished ***"+ MyUtils.ANSI_RESET);
         } else {
@@ -77,11 +82,36 @@ public class Main {
         }
     }
 
-    // trains the classifier given the "percent" -- percentage of the data
-    // to train on; see comments below
-    static void trainTheClassifier( final double percent ) {
-        if ( percent <= 0 || percent >= 1 )
-            throw new IllegalArgumentException("percentage has to be in [0,1]");
+    private static Map<Long,Integer> testingSet, trainingSet;
+    private static int TEST_SET_SIZE;
+
+    /*
+     * prepares, i.e. splits the data into training and testing datasets
+     * according to the supplied percentage
+     */
+    private static void prepare( double percent ) {
+        trainingSet = new HashMap<>();
+        testingSet = new HashMap<>();
+        Map<Long,Integer> all = dataHolder.retrieveAll(), ptr = trainingSet;
+        List<Long> lall = new LinkedList<>();
+        for ( Map.Entry<Long,Integer> entry: all.entrySet() )
+            for ( int k = 0; k < entry.getValue(); ++k )
+                lall.add(entry.getKey());
+        Collections.shuffle(lall);
+        int n = (int)(percent*lall.size()+1e-9), k = 0;
+        TEST_SET_SIZE = dataHolder.getDBSize()-n;
+        for ( int i = 0; i < lall.size(); ++i ) {
+            Long t = lall.get(i);
+            if ( ptr.containsKey(t) )
+                ptr.put(t,ptr.get(t)+1);
+            else ptr.put(t,1);
+            if ( k < n && ++k == n )
+                ptr = testingSet;
+        }
+    }
+
+    static void trainTheClassifier() {
+        /*
         int n = (int)(dataHolder.numUniqTuples()*percent);
         Long []t = dataHolder.getUniqTuples(n);
         Map<Long,Integer> cnts = new HashMap<>();
@@ -89,33 +119,48 @@ public class Main {
             if ( cnts.containsKey(x) )
                 cnts.put(x,cnts.get(x)+1);
             else cnts.put(x,1);
-        (c = new NaiveBayesClassifier()).trainOnData(cnts);
+            */
+        (c = new NaiveBayesClassifier()).trainOnData(trainingSet);
     }
 
     // used for testing the classifier -- counting accuracy -- on the
-    // data withheld;
-    static void classify( final double perc ) {
-        int n = dataHolder.numUniqTuples(), m = dataHolder.getNumOfOutcomes(), same = 0;
+    // testing data
+    static void classify() {
+        int m = dataHolder.getNumOfOutcomes(), same = 0;
         int [][]v = new int[m][m];
-        Long []t = dataHolder.getUniqTuples(n);
-        Map<Outcomes,Integer> cnt = new HashMap<>();
-        for ( Outcomes o: Outcomes.values() )
-            cnt.put(o,0);
-        for ( int i = 0; i < n; ++i ) {
-            int inReality = dataHolder.getOutcome(t[i]), butClassifiedAs = c.getPrediction(t[i]);
+        for ( Map.Entry<Long,Integer> entry: testingSet.entrySet() ) {
+            Long T = entry.getKey();
+            int inReality = dataHolder.getOutcome(T), butClassifiedAs = c.getPrediction(T);
             assert inReality >= 0 && butClassifiedAs >= 0: inReality+" "+butClassifiedAs;
-            ++v[inReality][butClassifiedAs];
-            same += (inReality==butClassifiedAs?1:0);
+            v[inReality][butClassifiedAs] += entry.getValue();
+            same += (inReality==butClassifiedAs?1:0)*entry.getValue();
         }
         try {
-            bw.write(c.toString()+"\n");
+            for (int i = 0; i < dataHolder.getN(); ++i)
+                bw.write(dataHolder.getNameOfAttribute(i) + " ");
+            bw.write("Classification\n");
+            for (Map.Entry<Long, Integer> entry : testingSet.entrySet()) {
+                Long t = entry.getKey();
+                for ( int k = 0; k < entry.getValue(); ++k ) {
+                    for (int i = 0; i < dataHolder.getN(); ++i)
+                        bw.write(dataHolder.getFieldValueName(t, i) + " ");
+                    bw.write(dataHolder.getOutcomeName(c.getPrediction(t)) + "\n");
+                }
+            }
+            StringBuilder sb = new StringBuilder();
+            for ( int i = 0; i < dataHolder.getNumOfOutcomes(); ++i )
+                sb.append(String.format("%10s",dataHolder.getOutcomeName(i)));
+            sb.append("| <--classified as\n");
+            for ( int i = 0; i < dataHolder.getNumOfOutcomes(); ++i, sb.append("\n") ) {
+                for (int j = 0; j < dataHolder.getNumOfOutcomes(); sb.append(String.format("%10d", v[i][j++]))) ;
+                sb.append("| "+dataHolder.getOutcomeName(i));
+            }
+            bw.write("\n                    === Confusion matrix ===\n\n"+sb.toString());
+            bw.write(String.format("\n%% of data used in training = %.2f, Accuracy %d/%d = %.2f\n", percent * 100, same, TEST_SET_SIZE, (same+0.0)/TEST_SET_SIZE));
             bw.flush();
-        } catch ( IOException io ) {
-            out.println("[classify()]: "+io.getMessage());
-            io.printStackTrace();
-            throw new RuntimeException(io);
+        } catch ( IOException e ) {
+            out.println(e.getMessage());
         }
-        out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(same+0.00)/n);
     }
 }
 

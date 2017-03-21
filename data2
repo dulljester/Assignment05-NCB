@@ -1,4 +1,4 @@
-outlook temperature humidity windy class
+outlook temperature humidity windy playtennis
 sunny     hot        high    false   n
 sunny     hot        high    true    n
 overcast  hot        high    false   p
@@ -49,3 +49,4 @@ sunny     mild      normal   true    p
 overcast  mild       high    true    p
 overcast  hot       normal   false   p
 rain      mild       high    true    n
+

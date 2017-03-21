@@ -33,7 +33,7 @@ public class Assignment05 {
 
         inp = new Scanner(System.in);
 
-        out.printf("\n\n" + MyUtils.ASCII_BOLD+"Assignment05 Part: "+MyUtils.ANSI_RESET+MyUtils.ANSI_BLUE+ "Binary Classification tool\n\n"+MyUtils.ANSI_RESET);
+        out.printf("\n\n" + MyUtils.ASCII_BOLD+"Assignment05 Bonus Part: "+MyUtils.ANSI_RESET+MyUtils.ANSI_BLUE+ "NCB Classification tool\n\n"+MyUtils.ANSI_RESET);
 
         do {
             out.printf("What is the name of the file containing your training data?\n");
@@ -46,7 +46,7 @@ public class Assignment05 {
         } while ( infile == null );
         out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading training data from %s\n\n",infile.toString());
 
-        bw = new BufferedWriter(new PrintWriter(outfile = new File("./Predictions.txt")));
+        bw = new BufferedWriter(new PrintWriter(outfile = new File("./Result.txt")));
         double perc = 0.99;
         System.setIn(new FileInputStream(new File(filename)));
         go(perc);
@@ -69,7 +69,7 @@ public class Assignment05 {
                 t = -1;
             }
         } while (t == -1);
-        if (dataHolder.setTargetAttribute(attributes.get(t))) {
+        if ( dataHolder.setTargetAttribute(attributes.get(t)) ) {
             out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+attributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
             trainTheClassifier(percent);
             do {
@@ -113,18 +113,19 @@ public class Assignment05 {
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);
         nf.setMinimumFractionDigits(2);
-        br.readLine(); // read the header; the relation must match that of training data
+        String header = br.readLine()+" Classification";
+        bw.write(header+"\n");
         int tuples = 0;
         for ( String buff; (buff = br.readLine()) != null; ++tuples ) {
-            if ( MyUtils.isEmptyLine(buff) ) continue ;
+            if ( MyUtils.isEmptyLine(buff) ) { --tuples; continue ; }
             Long t = dataHolder.mapRowToLong(buff);
             inReality = dataHolder.getOutcome(t);
             butClassifiedAs = c.getPrediction(t);
-            bw.write(buff+","+inReality+","+butClassifiedAs+"\n");
+            bw.write(buff.replaceAll("\\s+$","")+" "+dataHolder.getOutcomeName(butClassifiedAs)+"\n");
             same += (inReality==butClassifiedAs?1:0);
         }
         //bw.write("\nAccuracy "+nf.format((cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/tuples));
-        bw.write("\nAccuracy "+nf.format((same+0.0)/tuples));
+        bw.write("\nAccuracy "+same+"/"+tuples+" = "+nf.format((same+0.0)/tuples));
         bw.flush();
     }
 }

@@ -90,20 +90,16 @@ public class MyUtils {
     public static int argmax( double[] mass ) {
         int idx = 0,i,m = mass.length;
         double mx = mass[0];
-        mass = mass;
-        double []p = new double[m];
-        for ( int j = 0; j < m; ++j )
-            p[j] = Math.exp(mass[j]);
-        p = p;
-        for ( i = 0; i < m; ++i )
+        for ( i = 1; i < m; ++i )
             if ( mass[i] > mx )
                 mx = mass[idx = i];
+            else if ( abs(mass[i]-mx) < 1e-13) {
+                if ( Math.abs(ThreadLocalRandom.current().nextInt())%2 == 0 )
+                    mx = mass[idx = i];
+            }
             else {
                 assert mx >= mass[i];
-                mass[i] = mass[i];
             }
-        idx = idx;
-        mx = mx;
         return idx;
     }
 }

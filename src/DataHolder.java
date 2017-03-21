@@ -348,5 +348,9 @@ public class DataHolder {
     public int getNumOfOutcomes() {
         return getDomainCardinality(getTargVariable());
     }
+
+    public String getOutcomeName( int t ) {
+        return im.get(getTargVariable()).get(t);
+    }
 }
 
