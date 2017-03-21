@@ -1,26 +1,28 @@
-This is an implementation of ID3 algorithm, following the original paper http://dl.acm.org/citation.cfm?id=637969
-GitHub page of the project: https://github.com/dulljester/Assignment04
+BANNER ID TODO      EMAIL TODO
 
---Compile & run
+--What is the program for?
 
+This is an implementation of Naive Bayes Classification algorithm, following the original paper http://dl.acm.org/citation.cfm?id=637969
+GitHub page of the project: https://github.com/dulljester/Assignment05-NCB
+
+--How to Compile Code?
     compile: make
+
+--How to Run Code?
     run: java Bonus (or java Assignment05)
         NOTE: for simplicity, you can put the dataset inside the directory with the sources (this way you don't have to provide full path)
 
-        ***** BREAKDOWN BY EVALUATION CRITERIA *****
+--Overview of Program code
 
---Introduction to the code structure / architecture
+    --Introduction to the code structure / architecture
 
-        * readdata(): DataHolder class, private void readData( BufferedReader br ) throws Exception ;
-        * getattrib(): Bonus/Assignment05 class, interaction with the user, I/O, determining the target attribute, etc.
-        * maketree(): DecisionTree class implementing Classifier interface, the Node inner class constructor takes care of "maketree" functionality
-        * getInformationGain(): determineSplittingVarIdx() method in DecisionTree class
-        * doSplit(): determineSplittingVarIdx() and Node's constructor
-        * printtree(): DecisionTree class has an overridden toString() method that calls a recursive "printMyself()" method of the Node class
-        * usefulness measure of the rule == at each terminal node we report the fraction of the training data falling under this rule
+        * Classifier: interface with methods trainOnData(), getPrdiction()
+        * NaiveBayesClassifier class implements Classifier
+        * Summarizer -- private class of NBC, populates the HashMaps with the required marginals
+        * There are two main functions: first for the Main Part of Assignment05; the other for the Bonus Part
+        * DataHolder class: implements DAO and singleton pattern, same as used in Assignments 03 and 04
 
---Specify limitations of the program( if any)
-
+    --Specify limitations of the program (if any)
     --Itemset Encoding:
 
         I use a *long integer* to encode an itemset/transaction. More specifically, assume, for ease of exposition, just two columns
@@ -51,43 +53,41 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
         knows how to interpret it, and each entity uses its own reference the DataHolder (unique!) object to extract information
         from an itemset (or transaction).
 
---Other instructions / comments to the user
 
-        During the recursive process, when we run out of attributes but the classes are still mixed, we give the class label with "probability",
-        which is essentially the fraction of 0-labels. If it is 50/50, we look at the parent node.
-
---Code Design
+--Structure of Code
 
     --General Flow of the Algorithm:
-        The Node instance is given a certain bitmask we'll call "signature", where set bits denote the attributes we can perform a split.
-        The Node also has a "left" and "right" indices of a portion of training data that has been assigned to it (this way, we address a "globally"
-        allocated training data and don't have to copy the data for each node)
-        For each possible splitting variable, we sort the left-to-right portion of the data with respect to that attribute
-        (here just-in-time anonymous classes of Java come in handy), which breaks the left-to-right portion into segments
-        ready to be passed to the current node's children (if we decide to split on this attribute, that is).
+        Read the data and put everything inside a DataHolder object (singleton)
+        Divide the dataset according to the specified percentage (taken as 70%)
+        Count the Priors
+        Build the Model
+        Classify
+        Output the test data together with true labels and classification labels
+        Compute the Confusion Matrix
+        Output the Confusion Matrix
+        Output the Accuracy (correctly classified tuples / all tuples)
 
     --Modularity/Functionality:
 
         * MyUtils: utility collection of general-purpose operations and constants
         * DataHolder: interprets the long as a transaction, encodes a transaction as a long, provides access to transaction's fields, loads DB, etc.
 
-        [reusability] I have used the above classes for Assignment 3; and plan to do so for Assignments 5, too, as long as the dataset format remains the same.
+        [reusability] I have used the above classes for Assignment 3, 4
 
         * Classifier: an interface with two methods -- trainOnData() and getPrediction();
-          With this "coding-for-interface" pattern, for Assignment 5, all we have to do is to implement a NaiveBayes class
-          that implements Classifier; all the other classes access the DecisionTree via the Classifier interface;
-          the whole system is loosely coupled to the DecisionTree class. All we do is just plug-in another implementation
-          of the Classifier interface.
-        * DecisionTree implements Classifier: essentially, its private inner class Node does all the non-trivial work
-        * Bonus: driver; interacts with the user, I/O set-up, etc.
-        * Assignment05: derives a decision tree from training data and classifies another dataset, reports accuracy and predicted and true class labels
+        * NaiveBayesClassifier: implements Classifier: essentially, its private inner class Summarizer does all the non-trivial work
+          i.e. counting the marginals
+        * Bonus: driver; interacts with the user, I/O set-up, etc. Essentially the same as Assignment05 class, but takes only one file
+          and divides it in 70/30 ratio for training/testing
+        * Assignment05: derives a Bayesian model from training data and classifies another dataset, reports accuracy and predicted and true class labels
 
     --Code readability and comments
 
         All the methods bear self-explanatory names and are supplied with asserts to check for pre/post conditions
 
-    --Brief Description about Assignment05 part
-        Training(data1), Test(data2) --> accuracy 0.86
-        Training(data2), Test(data1) --> accuracy 0.67
-        It is somewhat counterintuitive that with larger training data we achieve worse accuracy on a smaller set.
-        I have no explanation for this.
+--Data noise handling
+    There is no noise in the data used for Assignment evaluation (data1, data2), as well as for the ones I used for Bonus Part
+
+--Bonus: Description about bonus part
+        Please see the assing5.pdf document for the detailed description.
+

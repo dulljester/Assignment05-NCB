@@ -29,6 +29,7 @@ public class Bonus {
     }
 
     private static final double percent = 0.70;
+    private static long startTime, endTime;
 
     public static void main(String... args) throws Exception {
         String filename = null;
@@ -120,7 +121,9 @@ public class Bonus {
                 cnts.put(x,cnts.get(x)+1);
             else cnts.put(x,1);
             */
+        startTime = System.currentTimeMillis();
         (c = new NaiveBayesClassifier()).trainOnData(trainingSet);
+        endTime = System.currentTimeMillis();
     }
 
     // used for testing the classifier -- counting accuracy -- on the
@@ -157,6 +160,7 @@ public class Bonus {
             }
             bw.write("\n                    === Confusion matrix ===\n\n"+sb.toString());
             bw.write(String.format("\n%% of data used in training = %.2f, Accuracy %d/%d = %.2f\n", percent * 100, same, TEST_SET_SIZE, (same+0.0)/TEST_SET_SIZE));
+            bw.write("Time to build model"+(endTime-startTime)+"ms");
             bw.flush();
         } catch ( IOException e ) {
             out.println(e.getMessage());

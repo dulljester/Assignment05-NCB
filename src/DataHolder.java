@@ -101,8 +101,8 @@ public class DataHolder {
      * returns the original String value of the idx column
      */
     public String getFieldValueName( Long t, int idx ) {
-        assert im.get(idx).containsKey(Integer.valueOf((int)readAttribute(t,idx)>>offset[idx]));
-        return im.get(idx).get(Integer.valueOf((int)readAttribute(t,idx)>>offset[idx]));
+        assert im.get(idx).containsKey(Integer.valueOf((int)(readAttribute(t,idx)>>offset[idx])));
+        return im.get(idx).get(Integer.valueOf((int)(readAttribute(t,idx)>>offset[idx])));
     }
     /*
      * given a transaction represented as long, "reads" its "idx" column

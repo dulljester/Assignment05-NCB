@@ -5,7 +5,6 @@ public class NaiveBayesClassifier implements Classifier {
     private int[] card = new int[dataHolder.getNumOfOutcomes()];
     Map<Long,Integer> trainingData;
     private Summarizer summarizer = null;
-
     private class Summarizer {
         private Map<Integer,Map<Integer,Map<Long,Integer>>> marginals = new HashMap<>();
         Summarizer() {
@@ -42,7 +41,6 @@ public class NaiveBayesClassifier implements Classifier {
             return Math.log(up)-Math.log(down);
         }
     }
-
     @Override
     /**
      * @param trainingData: (tuple,numOfSuchTuplesInDatabase)
@@ -57,11 +55,11 @@ public class NaiveBayesClassifier implements Classifier {
      * @return the predicted class label
      */
     public int getPrediction( Long t ) {
-        int m = dataHolder.getNumOfOutcomes();
+        int m = dataHolder.getNumOfOutcomes(),i;
         assert m >= 1;
         double []mass = new double[m];
         for ( int c = 0; c < m; ++c )
-            for ( int i = 0; i < dataHolder.getN(); ++i )
+            for ( mass[c] = Math.log(card[c]), i = 0; i < dataHolder.getN(); ++i )
                 if ( i != dataHolder.getTargVariable() )
                     mass[c] += summarizer.getLogConditionalProbability(i,dataHolder.readAttribute(t,i),c);
         return MyUtils.argmax(mass);
